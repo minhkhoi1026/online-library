@@ -2,6 +2,7 @@ import socket
 import logging
 import json
 from _thread import start_new_thread
+from database import library_database
 from utils import *
 
 HOST = '0.0.0.0'  # open host in all network interfaces
@@ -14,7 +15,6 @@ class library_server:
         self.host = host # server host IP
         self.port = port # server port
         self.database = library_database()
-
     
 #-------------------PUBLIC AREA-------------------
     def communicate_client(self, client, addr):
