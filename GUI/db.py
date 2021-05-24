@@ -61,9 +61,9 @@ class database():
         db_table = self.__Query(query,(author,))
         return db_table
 
-    def ReadBook(self,name):
-        query = 'SELECT path FROM Book WHERE Name = ?'
-        Dir = self.__Query(query,(name,))
+    def ReadBook(self,ID):
+        query = 'SELECT path FROM Book WHERE ID = ?'
+        Dir = self.__Query(query,(ID,))
         if Dir != []:
             f = open("BOOK\\"+Dir[0][0], "rb")
             print(f.read())

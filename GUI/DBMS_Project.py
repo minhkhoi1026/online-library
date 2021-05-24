@@ -105,7 +105,7 @@ class Window_user:
 
         Chooser.add_cascade(label='File', menu=itemone)
         Chooser.add_command(label='Add', command=self.add)
-        Chooser.add_command(label='Edit', command=self.edit)
+        Chooser.add_command(label='Read Book', command=self.edit)
         Chooser.add_command(label='Delete', command=self.delet)
         Chooser.add_command(label='Help', command=self.help)
         Chooser.add_command(label='Exit', command=self.ex)
@@ -244,7 +244,7 @@ class Window_user:
             self.message['text'] = 'Please select a Book to Edit!'
             return
 
-        name = self.tree.item(self.tree.selection())['values'][0]
+        ID = self.tree.item(self.tree.selection())['text']
         '''
         lname = self.tree.item(self.tree.selection())['values'][1]
         uname = self.tree.item(self.tree.selection())['values'][2]
@@ -301,7 +301,7 @@ class Window_user:
         Button(self.edit_root, text='Save Changes', command=lambda: self.edit_book(new_fname.get(), fname, new_lname.get(), lname, new_uname.get(), uname, new_email.get(), email,new_subject.get(), subject, new_age.get(), age)).grid(row=12, column=2, sticky=W)
 
         self.edit_root.mainloop()'''
-        self.DB.ReadBook(name)
+        self.DB.ReadBook(ID)
 
     def edit_book(self, new_bname, bname, new_btype, btype, new_author, author, new_year, year, new_nation, nation,
                     new_rate, rate):
