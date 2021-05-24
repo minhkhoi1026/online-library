@@ -2,10 +2,11 @@ from tkinter import *
 from PIL import ImageTk
 from tkinter import messagebox
 from DBMS_Project import *
+from db import database
 class Login:
-  db_name = 'lb.db'
   def __init__(self,root):
     self.root=root
+    self.DB=database('lb.db')
     self.root.title('Login System')
     self.root.geometry('1200x580')
     self.root.resizable(False,False)
@@ -42,45 +43,35 @@ class Login:
     self.txt_pass['show']='*'
   def Register(self):
     self.reg.config(text="Go back",command=self.goback)
-    self.confirm.config(text="Sign up")
+    self.confirm.config(text="Sign up",command=self.SignUp)
     return
   def goback(self):
     self.reg.config(text="Register an account ?",command=self.Register)
-    self.confirm.config(text="Sign in")
+    self.confirm.config(text="Sign in",command=self.Login)
     return
   def Login(self):
-    if self.confirm['text']=='Sign in':
-        query = 'SELECT * FROM account WHERE Username = ?'
-        db_table = self.run_query(query,(self.txt_user.get(),))
-        for data in db_table:
-            if data[1]==self.txt_pass.get():
-                root.destroy()
-                #Open new window
-                newroot = Tk()
-                application = School_Portal(newroot)
-                newroot.mainloop()
-                return
-        messagebox.showinfo("Notification","Incorrect Username or password")
-    if self.confirm['text']=='Sign up':
-        self.SignUp()
+    if self.DB.Login(self.txt_user.get(),self.txt_pass.get()):
+        root.destroy()
+        #Open new window
+        newroot = Tk()
+        application = Window_user(newroot,self.DB)
+        newroot.mainloop()
+        return
+    messagebox.showinfo("Notification","Incorrect Username or password")
     return
   def run_query(self, query, parameters=()):
-        with sqlite3.connect(self.db_name) as conn:
-            print(self.db_name)
+        with sqlite3.connect('lb.db') as conn:
             cursor = conn.cursor()
             query_result = cursor.execute(query, parameters)
             conn.commit()
-        return query_result  
+        return query_result.fetchall()  
   def SignUp(self):
-    try:
-            query = 'INSERT INTO account VALUES (?,?)'
-            parameters = (self.txt_user.get(),self.txt_pass.get())
-            self.run_query(query, parameters)
-            messagebox.showinfo("Notification","Sign Up in successfully")
-            self.goback()
 
-    except:
-            messagebox.showinfo("Notification",'Account already exists..') 
+    if self.DB.Register(self.txt_user.get(),self.txt_pass.get()):
+        messagebox.showinfo("Notification","Sign Up in successfully")
+        self.goback()
+    else:
+        messagebox.showinfo("Notification",'Account already exists..') 
 
 root=Tk()
 obj=Login(root)

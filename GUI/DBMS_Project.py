@@ -6,17 +6,19 @@ import datetime
 import time
 import tkinter.messagebox
 import sqlite3
+from db import database
 
 ''' IMPORTING SUCCESSFUL'''
 
 ''' CREATING CLASS'''
 
 
-class School_Portal:
+class Window_user:
     db_name = 'lb.db'
 
-    def __init__(self, root):
+    def __init__(self, root,DB):
         self.root = root
+        self.DB=DB
         self.root.geometry('655x525+600+200')
         self.root.title('Students Data')
 
@@ -29,40 +31,30 @@ class School_Portal:
         self.label1 = Label(font=('arial', 15, 'bold'), text='School Portal System', fg='dark blue')
         self.label1.grid(row=8, column=0)
 
+        self.option = [
+            "ID",
+            "Name",
+            "Type",
+            "Author"
+        ]   
         ''' New Books '''
-        frame = LabelFrame(self.root, text='Add New Book')
-        frame.grid(row=0, column=1)
+        self.frame = LabelFrame(self.root, text='Book search')
+        self.frame.grid(row=0, column=1)
 
-        Label(frame, text='ID:').grid(row=1, column=1, sticky=W)
-        self.ID = Entry(frame)
-        self.ID.grid(row=1, column=2)
+        self.chosen = StringVar()
+        self.chosen.set(self.option[0])
+        self.drop = OptionMenu(self.frame, self.chosen, *self.option,command=self.fix)
+        Label(self.frame, text='Search by:').grid(row=1, column=1, sticky=W)
+        self.drop.grid(row=1, column=2)
 
-        Label(frame, text='Bookname:').grid(row=2, column=1, sticky=W)
-        self.bookname = Entry(frame)
-        self.bookname.grid(row=2, column=2)
-
-        Label(frame, text='Type:').grid(row=3, column=1, sticky=W)
-        self.type = Entry(frame)
-        self.type.grid(row=3, column=2)
-
-        Label(frame, text='Author:').grid(row=4, column=1, sticky=W)
-        self.Author = Entry(frame)
-        self.Author.grid(row=4, column=2)
-
-        Label(frame, text='Year:').grid(row=5, column=1, sticky=W)
-        self.year = Entry(frame)
-        self.year.grid(row=5, column=2)
-
-        Label(frame, text='Rate:').grid(row=6, column=1, sticky=W)
-        self.rate = Entry(frame)
-        self.rate.grid(row=6, column=2)
-
-        Label(frame, text='Nation:').grid(row=7, column=1, sticky=W)
-        self.nation = Entry(frame)
-        self.nation.grid(row=7, column=2)
+        self.N_text=Label(self.frame, text='ID:')
+        self.N_text.grid(row=2, column=1, sticky=W)
+        self.S_text = Entry(self.frame)
+        self.S_text.grid(row=2, column=2)
 
         '''Add Button'''
-        ttk.Button(frame, text='Add book', command=self.add).grid(row=8, column=2)
+        self.search=Button(self.frame, text='Search book', command=self.view_book_ID)
+        self.search.grid(row=3, column=2)
 
         '''Message Display'''
         self.message = Label(text='', fg='Red')
@@ -105,7 +97,7 @@ class School_Portal:
         itemone = Menu()
 
         itemone.add_command(label='Add Book', command=self.add)
-        itemone.add_command(label='Edit Book', command=self.edit)
+        itemone.add_command(label='Read Book', command=self.edit)
         itemone.add_command(label='Delete Book', command=self.delet)
         itemone.add_separator()
         itemone.add_command(label='Help', command=self.help)
@@ -119,26 +111,61 @@ class School_Portal:
         Chooser.add_command(label='Exit', command=self.ex)
 
         root.config(menu=Chooser)
-        self.veiwing_books()
+        self.view_book()
 
     ''' View Database Table'''
+    def fix(self,a):
+        self.N_text.config(text=self.chosen.get()+':')
+        if a==self.option[0]:
+            self.search.config(command=self.view_book_ID)
+        elif a==self.option[1]:
+            self.search.config(command=self.view_book_name)
+        elif a==self.option[2]:
+            self.search.config(command=self.view_book_type)
+        elif a==self.option[3]:
+            self.search.config(command=self.view_book_author)
 
-    def run_query(self, query, parameters=()):
-        with sqlite3.connect(self.db_name) as conn:
-            print(self.db_name)
-            cursor = conn.cursor()
-            query_result = cursor.execute(query, parameters)
-            conn.commit()
-        return query_result
-
-    def veiwing_books(self):
+    def view_book(self):
         books = self.tree.get_children()
         for element in books:
             self.tree.delete(element)
-        query = 'SELECT * FROM Book'
-        db_table = self.run_query(query)
+        db_table = self.DB.Bview()
         for data in db_table:
-            self.tree.insert('', 1000, text=data[0], values=data[1:])
+            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
+    def view_book_ID(self):
+        books = self.tree.get_children()
+        for element in books:
+            self.tree.delete(element)
+        db_table=self.DB.BSearch_ID(self.S_text.get())
+        for data in db_table:
+            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
+    def view_book_name(self):
+        books = self.tree.get_children()
+        for element in books:
+            self.tree.delete(element)
+        print(self.S_text.get())
+        db_table=self.DB.BSearch_name(self.S_text.get())
+        for data in db_table:
+            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
+    def view_book_type(self):
+        books = self.tree.get_children()
+        for element in books:
+            self.tree.delete(element)
+        db_table=self.DB.BSearch_type(self.S_text.get())
+        for data in db_table:
+            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
+    def view_book_author(self):
+        books = self.tree.get_children()
+        for element in books:
+            self.tree.delete(element)
+        ### 
+
+        db_table=self.DB.BSearch_author(self.S_text.get())
+
+        ###
+        for data in db_table:
+            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
+
 
     ''' Add New Book '''
 
@@ -161,7 +188,7 @@ class School_Portal:
         except:
             self.message['text'] = 'Fields not completed! Complete all fields...'
 
-        self.veiwing_books()
+        self.view_book()
 
     '''Function for using buttons'''
 
@@ -195,7 +222,7 @@ class School_Portal:
 
         # Printing new database
 
-        self.veiwing_books()
+        self.view_book()
 
     # Function to add functionality in buttons
 
@@ -217,7 +244,8 @@ class School_Portal:
             self.message['text'] = 'Please select a Book to Edit!'
             return
 
-        fname = self.tree.item(self.tree.selection())['values'][0]
+        name = self.tree.item(self.tree.selection())['values'][0]
+        '''
         lname = self.tree.item(self.tree.selection())['values'][1]
         uname = self.tree.item(self.tree.selection())['values'][2]
         email = self.tree.item(self.tree.selection())['values'][3]
@@ -272,7 +300,8 @@ class School_Portal:
 
         Button(self.edit_root, text='Save Changes', command=lambda: self.edit_book(new_fname.get(), fname, new_lname.get(), lname, new_uname.get(), uname, new_email.get(), email,new_subject.get(), subject, new_age.get(), age)).grid(row=12, column=2, sticky=W)
 
-        self.edit_root.mainloop()
+        self.edit_root.mainloop()'''
+        self.DB.ReadBook(name)
 
     def edit_book(self, new_bname, bname, new_btype, btype, new_author, author, new_year, year, new_nation, nation,
                     new_rate, rate):
@@ -283,7 +312,7 @@ class School_Portal:
         self.run_query(query, parameters)
         self.edit_root.destroy()
         self.message['text'] = '{} details are changed to {}'.format(bname, new_bname)
-        self.veiwing_books()
+        self.view_book()
 
     def edit(self):
         ed = tkinter.messagebox.askquestion('Edit information', 'Want to Edit this book?')
