@@ -90,7 +90,7 @@ class library_server:
             
         client.close()
 
-    def deploy(self):
+    def run(self):
         # Open to listen for connection
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_addr = None
@@ -122,4 +122,4 @@ class library_server:
         server.close()
         
 server = library_server()
-server.deploy()
+server.run()
