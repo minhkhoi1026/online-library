@@ -1,5 +1,6 @@
 import socket
 import json
+import time
 from utils import *
 
 HOST = "127.0.0.1"  # The default server's hostname or IP address
@@ -17,8 +18,8 @@ class library_client:
         while True:
             try:
                 server_addr = (self.host, self.port)
-                self.server = socket.create_connection(server_addr, timeout = 0.5)
-                self.server = socket_adapter(server) # wrap socket in different interface
+                self.server = socket.create_connection(server_addr, timeout = 5)
+                self.server = socket_adapter(self.server) # wrap socket in personal interface
                 print("Connected successfullt at", host_to_str(*server_addr))
                 break
             except socket.error:
@@ -41,27 +42,40 @@ class library_client:
         msg = self.server.recv().decode("utf-8")
         return eval(msg)
     
+    # sign 
     def sign_up(self, username, password):
         request = ' '.join(["SIGNUP", username, password])
         self.server.send(request.encode("utf-8"))
         msg = self.server.recv().decode("utf-8")
         return eval(msg)
     
+    # get list of book by cmd and detail of cmd
+    # return list of books, each book contain (ID, name, type, author,)
     def get_list_book(self, cmd, detail):
         if (cmd not in ["F_ID", "F_NAME", "F_TYPE", "F_AUTHOR"]):
             return []
-        request = ' '.join([cmd], detail)
+        request = ' '.join([cmd, detail])
         self.server.send(request.encode('utf-8'))
         json_books = self.server.recv().decode('utf-8')
         books = json.loads(json_books)
         return books
     
+    # get book content by id
     def get_book_content(self, id):
-        request = ' '.join(["GETBOOK"], id)
+        request = ' '.join(["GETBOOK", id])
         self.server.send(request.encode('utf-8'))
         content = self.server.recv()
         return content
 
 client = library_client()
 client.connect()
-client.close_connect()
+print(client.sign_up('minhkhoi1026', '123456'))
+print(client.log_in('minhkhoi1026', '123456'))
+print(client.get_list_book('F_ID', '1'))
+print(client.get_list_book('F_NAME','asdasd asdas'))
+print(client.get_list_book('F_TYPE','A A'))
+print(client.get_list_book('F_AUTHOR','Viktor Frankl'))
+
+with open("test1.pdf", "wb") as f:
+    f.write(client.get_book_content('1'))
+print(client.close_connect())

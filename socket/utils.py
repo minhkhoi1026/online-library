@@ -1,4 +1,5 @@
 import socket
+import threading
 
 def host_to_str(host, port):
     return host + ":" + str(port)
@@ -11,7 +12,7 @@ class socket_adapter:
     def settimeout(self, t):
         self.conn.settimeout(t)
     
-    def close(self, t):
+    def close(self):
         self.conn.close()
 
     def recv(self):
@@ -30,3 +31,14 @@ class socket_adapter:
         bsize = len(data).to_bytes(4, 'big')
         self.conn.sendall(bsize)
         self.conn.sendall(data)
+
+class stoppabe_thread(threading.Thread):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._stop_event = threading.Event()
+    
+    def stop(self):
+        self._stop_event.set()
+
+    def is_stopped(self):
+        return self._stop_event.is_set()

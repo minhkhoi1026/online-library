@@ -1,24 +1,29 @@
 import socket
 import logging
 import json
-from _thread import start_new_thread
+import threading
 from database import library_database
 from utils import *
+import time
 
 HOST = '0.0.0.0'  # open host in all network interfaces
 PORT = 26100  # default port
+DB_NAME = 'library'
 MAX_CONN = 5
 
 class library_server:
 #-------------------PRIVATE AREA-------------------
-    def __init__(self, host = HOST, port = PORT):
+    def __init__(self, host = HOST, port = PORT, db_name = DB_NAME, max_conn = MAX_CONN):
         self.host = host # server host IP
         self.port = port # server port
-        self.database = library_database()
+        self.db_name = db_name # server database name
+        self.max_conn = max_conn
+        self.client_threads = []
     
 #-------------------PUBLIC AREA-------------------
-    def communicate_client(self, client, addr):
+    def handle_client(self, client, addr):
         client = socket_adapter(client)
+        database = library_database(self.db_name)
 
         def respond(request):
             tokens = request.split(' ')
@@ -28,7 +33,7 @@ class library_server:
             if cmd == "LOGIN":
                 username = tokens[1]
                 password = ' '.join(tokens[2:])
-                if (self.database.check_log_in(username, password) == True):
+                if (database.log_in(username, password) == True):
                     client.send(b"True")
                 else:
                     client.send(b"False")
@@ -37,7 +42,7 @@ class library_server:
             elif cmd == "SIGNUP":
                 username = tokens[1]
                 password = ' '.join(tokens[2:])
-                if (self.database.sign_up(username, password) == True):
+                if (database.sign_up(username, password) == True):
                     client.send(b"True")
                 else:
                     client.send(b"False")
@@ -46,48 +51,50 @@ class library_server:
                 books = []
                 if (cmd == "F_ID"):
                     id = tokens[1]
-                    books = self.database.get_books_by_id(id)
+                    books = database.get_books_by_id(id)
                 elif (cmd == "F_NAME"):
                     name = ' '.join(tokens[1:])
-                    books = self.database.get_books_by_name(name)
+                    books = database.get_books_by_name(name)
                 elif (cmd == "F_TYPE"):
                     book_type = ' '.join(tokens[1:])
-                    books = self.database.get_books_by_type(book_type)
+                    books = database.get_books_by_type(book_type)
                 elif (cmd == "F_AUTHOR"):
                     author = ' '.join(tokens[1:])
-                    books = self.database.get_books_by_author(author)
+                    books = database.get_books_by_author(author)
                 # dumps list of row into json strings then send to client
+                print(books)
                 json_books = json.dumps(books)
                 client.send(json_books.encode('utf-8'))
             # Get content of book by id request, return binary string of file
             elif cmd == ("GETBOOK"):
                 id = tokens[1]
-                content = self.database.get_book_content(id)
-                client.send(data)
+                content = database.get_book_content(id)
+                client.send(content)
             else:
                 return False
             return True
-                
-        while True:
+        
+        # response to client request
+        while not threading.current_thread().is_stopped():
             try:
-                client.settimeout(3)
+                client.settimeout(120) # maximum time we can wait for client request
                 request = client.recv().decode("utf-8")
-                if (request == "QUIT"):
-                    print("Client " + host_to_str(addr) + " closed successfully!")
+                if (request == "QUIT" or request == ""):
+                    print("Client " + host_to_str(*addr) + " closed successfully!")
                     break
                 else:
                     if (respond(request) == True):
-                        print("Client " + host_to_str(addr) + ": Success to execute " + request)
+                        print(host_to_str(*addr) + ": Success to execute " + request)
                     else:
-                        print("Client " + host_to_str(addr) + ": Failed to execute " + request)
-            except socket.error as msg:
-                print(msg + ". Client " + host_to_str(addr) + " suddenly disconnected!")
+                        print(host_to_str(*addr) + ": Failed to execute " + request)
+            except socket.error as msg: # catch socket error
+                print(host_to_str(*addr) + " suddenly disconnected!")
                 break
-            except socket.timeout:
-                print((msg + ". Client " + host_to_str(addr) + " connection time out!")
-            
-            print(cmd)
-            
+            except socket.timeout: # catch socket timeout
+                print(host_to_str(*addr) + " connection time out!")   
+                break
+        # set state of thread and close connect
+        threading.current_thread().stop()
         client.close()
 
     def run(self):
@@ -106,20 +113,48 @@ class library_server:
                 if (self.port >= 26200):
                     raise RuntimeError("Cannot deploy server!")
 
-        server.listen(MAX_CONN)
-        server.setblocking(false)
         print("Server is available at",  host_to_str(*server_addr))
-
-        # accept connection then respond request from client
-        while True:
-            client, addr = server.accept()
-            print("Connected to:", host_to_str(*server_addr))
-            '''try:
-                start_new_thread(respond_client(client, addr))
-            except :
-                pass'''
-            start_new_thread(self.communicate_client, (client, addr, ))
-        server.close()
+        server.listen(0) # not allow queuing unaccpeted connection
         
-server = library_server()
-server.run()
+        # accept connection then respond request from client
+        while not threading.current_thread().is_stopped():
+            try:
+                client, addr = server.accept()
+                try:
+                    if not (self.available()): # limited number of concurrent client
+                        client.close()
+                        raise Exception
+                    # started new thread
+                    print(host_to_str(*addr) + " connected!")
+                    t = stoppabe_thread(target=self.handle_client, args=(client, addr))
+                    t.start()
+                    self.client_threads.append(t)
+                except:
+                    pass
+            except:
+                pass
+        server.close()
+    
+    # close all current connection
+    def close_all_connect(self):
+        for t in self.client_threads:
+            if not t.is_stopped():
+                t.stop()
+        self.client_threads = []
+        pass
+
+    # update client list, remove thread that stopped
+    def update_client_list(self):
+        self.client_threads = [t for i in self.client_threads if not t.is_stopped()]
+
+    # check if server capacity can accept new connection
+    def available(self):
+        self.update_client_list()
+        return len(self.client_threads) <= self.max_conn
+        
+'''server = library_server()
+t = stoppabe_thread(target=server.run)
+t.start()
+time.sleep(5)
+t.stop()
+server.close_all_connect()'''
