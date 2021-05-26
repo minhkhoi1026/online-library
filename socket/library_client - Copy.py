@@ -67,7 +67,7 @@ class library_client:
         content = self.server.recv()
         return content
 
-'''client = library_client()
+client = library_client()
 client.connect()
 print(client.sign_up('minhkhoi1026', '123456'))
 print(client.log_in('minhkhoi1026', '123456'))
@@ -78,4 +78,4 @@ print(client.get_list_book('F_AUTHOR','Viktor Frankl'))
 time.sleep(10)
 with open("test1.pdf", "wb") as f:
     f.write(client.get_book_content('1'))
-print(client.close_connect())'''
+print(client.close_connect())

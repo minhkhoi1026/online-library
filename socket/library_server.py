@@ -11,14 +11,17 @@ PORT = 26100  # default port
 DB_NAME = 'library'
 MAX_CONN = 5
 
+
+
 class library_server:
 #-------------------PRIVATE AREA-------------------
-    def __init__(self, host = HOST, port = PORT, db_name = DB_NAME, max_conn = MAX_CONN):
+    def __init__(self, logger, host = HOST, port = PORT, db_name = DB_NAME, max_conn = MAX_CONN):
         self.host = host # server host IP
         self.port = port # server port
         self.db_name = db_name # server database name
         self.max_conn = max_conn
         self.client_threads = []
+        self.logger = logger
     
 #-------------------PUBLIC AREA-------------------
     def handle_client(self, client, addr):
@@ -62,7 +65,6 @@ class library_server:
                     author = ' '.join(tokens[1:])
                     books = database.get_books_by_author(author)
                 # dumps list of row into json strings then send to client
-                print(books)
                 json_books = json.dumps(books)
                 client.send(json_books.encode('utf-8'))
             # Get content of book by id request, return binary string of file
@@ -77,21 +79,20 @@ class library_server:
         # response to client request
         while not threading.current_thread().is_stopped():
             try:
-                client.settimeout(120) # maximum time we can wait for client request
                 request = client.recv().decode("utf-8")
                 if (request == "QUIT" or request == ""):
-                    print("Client " + host_to_str(*addr) + " closed successfully!")
+                    self.logger.log(logging.INFO, "Client " + host_to_str(*addr) + " closed successfully!")
                     break
                 else:
                     if (respond(request) == True):
-                        print(host_to_str(*addr) + ": Success to execute " + request)
+                        self.logger.log(logging.INFO, host_to_str(*addr) + ": Success to execute " + request)
                     else:
-                        print(host_to_str(*addr) + ": Failed to execute " + request)
+                        self.logger.log(logging.DEBUG, host_to_str(*addr) + ": Failed to execute " + request)
             except socket.error as msg: # catch socket error
-                print(host_to_str(*addr) + " suddenly disconnected!")
+                self.logger.log(logging.ERROR, host_to_str(*addr) + " suddenly disconnected!")
                 break
             except socket.timeout: # catch socket timeout
-                print(host_to_str(*addr) + " connection time out!")   
+                self.logger.log(logging.ERROR, host_to_str(*addr) + " connection time out!")   
                 break
         # set state of thread and close connect
         threading.current_thread().stop()
@@ -108,12 +109,12 @@ class library_server:
                 server.bind(server_addr)
                 break
             except socket.error:
-                print("Failed to deploy server at", host_to_str(*server_addr) + ". Retrying...")
+                self.logger.log(logging.DEBUG, "Failed to deploy server at " + host_to_str(*server_addr) + ". Retrying...")
                 self.port += 1
                 if (self.port >= 26200):
                     raise RuntimeError("Cannot deploy server!")
 
-        print("Server is available at",  host_to_str(*server_addr))
+        self.logger.log(logging.INFO, "Server is available at " + host_to_str(*server_addr))
         server.listen(0) # not allow queuing unaccpeted connection
         
         # accept connection then respond request from client
@@ -125,7 +126,7 @@ class library_server:
                         client.close()
                         raise Exception
                     # started new thread
-                    print(host_to_str(*addr) + " connected!")
+                    self.logger.log(logging.INFO, host_to_str(*addr) + " connected!")
                     t = stoppabe_thread(target=self.handle_client, args=(client, addr))
                     t.start()
                     self.client_threads.append(t)
