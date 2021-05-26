@@ -64,18 +64,15 @@ class library_client:
     def get_book_content(self, id):
         request = ' '.join(["GETBOOK", id])
         self.server.send(request.encode('utf-8'))
+        ext = self.server.recv().decode('utf-8')
         content = self.server.recv()
-        return content
+        return (ext, content)
 
 '''client = library_client()
 client.connect()
-print(client.sign_up('minhkhoi1026', '123456'))
-print(client.log_in('minhkhoi1026', '123456'))
-print(client.get_list_book('F_ID', '1'))
-print(client.get_list_book('F_NAME','asdasd asdas'))
-print(client.get_list_book('F_TYPE','A A'))
-print(client.get_list_book('F_AUTHOR','Viktor Frankl'))
-time.sleep(10)
-with open("test1.pdf", "wb") as f:
-    f.write(client.get_book_content('1'))
+with open("test3.pdf", "wb") as f:
+    ext, content = client.get_book_content('2')
+    print(ext)
+    if (ext == 'None'): exit()
+    f.write(content)
 print(client.close_connect())'''

@@ -9,7 +9,7 @@ import time
 HOST = '0.0.0.0'  # open host in all network interfaces
 PORT = 26100  # default port
 DB_NAME = 'library'
-MAX_CONN = 5
+MAX_CONN = 2
 
 
 
@@ -70,7 +70,8 @@ class library_server:
             # Get content of book by id request, return binary string of file
             elif cmd == ("GETBOOK"):
                 id = tokens[1]
-                content = database.get_book_content(id)
+                ext, content = database.get_book_content(id)
+                client.send(ext.encode("utf-8"))
                 client.send(content)
             else:
                 return False
@@ -121,17 +122,15 @@ class library_server:
         while not threading.current_thread().is_stopped():
             try:
                 client, addr = server.accept()
-                try:
-                    if not (self.available()): # limited number of concurrent client
-                        client.close()
-                        raise Exception
-                    # started new thread
-                    self.logger.log(logging.INFO, host_to_str(*addr) + " connected!")
-                    t = stoppabe_thread(target=self.handle_client, args=(client, addr))
-                    t.start()
-                    self.client_threads.append(t)
-                except:
-                    pass
+                if not (self.available()): # limited number of concurrent client
+                    self.logger.log(logging.WARNING, host_to_str(*addr) + " refused due to limitation of server!")
+                    client.close()
+                    raise Exception
+                # started new thread
+                self.logger.log(logging.INFO, host_to_str(*addr) + " connected!")
+                t = stoppabe_thread(target=self.handle_client, args=(client, addr))
+                t.start()
+                self.client_threads.append(t)
             except:
                 pass
         server.close()
@@ -146,16 +145,10 @@ class library_server:
 
     # update client list, remove thread that stopped
     def update_client_list(self):
-        self.client_threads = [t for i in self.client_threads if not t.is_stopped()]
+        self.client_threads = [t for t in self.client_threads if not t.is_stopped()]
 
     # check if server capacity can accept new connection
     def available(self):
         self.update_client_list()
-        return len(self.client_threads) <= self.max_conn
+        return len(self.client_threads) < self.max_conn
         
-'''server = library_server()
-t = stoppabe_thread(target=server.run)
-t.start()
-time.sleep(5)
-t.stop()
-server.close_all_connect()'''

@@ -101,11 +101,15 @@ class library_database():
     def get_book_content(self, id):
         query = 'SELECT PATH FROM BOOK WHERE ID = ?'
         dir = self.__query(query,(id,))
-        data = b''
-        f = open(dir[0][0], "rb")
-        data = f.read()
-        f.close()
-        return data
+        data = b' '
+        ext = 'None'
+        if (len(dir) > 0):
+            path = dir[0][0]
+            f = open(path, "rb")
+            data = f.read()
+            f.close()
+            ext = path.split('.')[-1]
+        return (ext, data)
 
 '''db = library_database('library')
 db.create_tables()
