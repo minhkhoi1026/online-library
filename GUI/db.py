@@ -66,6 +66,7 @@ class database():
         Dir = self.__Query(query,(ID,))
         if Dir != []:
             f = open("BOOK\\"+Dir[0][0], "rb")
-            print(f.read())
+            book=f.read()
             f.close()
-        return
+            return book
+        return None

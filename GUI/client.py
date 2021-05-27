@@ -1,8 +1,11 @@
 from tkinter import *
 from PIL import ImageTk
 from tkinter import messagebox
-from DBMS_Project import *
+from OL_Project import *
+from tkinter import filedialog
 from db import database
+
+
 class Login:
   def __init__(self,root):
     self.root=root
@@ -35,6 +38,8 @@ class Login:
     self.reg.place(x=20,y=220)
     self.confirm=Button(Frame_login,text='Sign in',bg='#344fa1',fg='white',bd=0,command=self.Login,font=('times new roman',12))
     self.confirm.place(x=330,y=220)
+
+
 
   def showPW(self):
     if self.txt_pass['show']=='*':
