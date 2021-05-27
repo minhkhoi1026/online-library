@@ -75,10 +75,18 @@ class library_server:
                 return False
             return True
         
-        # response to client request
-        while not threading.current_thread().is_stopped():
+        while True:
             try:
-                request = client.recv().decode("utf-8")
+                request = client.recv().decode("utf-8") # receive request
+
+                # check if current thread is still able to running
+                if threading.current_thread().is_stopped():
+                    client.send(b"False")
+                    break
+                else:
+                    client.send(b"True")
+
+                # respond request
                 if (request == "QUIT" or request == ""):
                     self.logger.log(logging.INFO, "Client " + host_to_str(*addr) + " closed successfully!")
                     break
@@ -87,10 +95,12 @@ class library_server:
                         self.logger.log(logging.INFO, host_to_str(*addr) + ": Success to execute " + request)
                     else:
                         self.logger.log(logging.DEBUG, host_to_str(*addr) + ": Failed to execute " + request)
-            except socket.error as msg: # catch socket error
+            # catch socket error
+            except socket.error as msg: 
                 self.logger.log(logging.ERROR, host_to_str(*addr) + " suddenly disconnected!")
                 break
-            except socket.timeout: # catch socket timeout
+            # catch socket timeout
+            except socket.timeout: 
                 self.logger.log(logging.ERROR, host_to_str(*addr) + " connection time out!")   
                 break
         # set state of thread and close connect
@@ -139,7 +149,7 @@ class library_server:
             if not t.is_stopped():
                 t.stop()
         self.client_threads = []
-        self.logger.log(logging.INFO, "Disconnected all client! Each current client will have one more request before closed!")
+        self.logger.log(logging.INFO, "Disconnected all client!")
 
     # update client list, remove thread that stopped
     def update_client_list(self):

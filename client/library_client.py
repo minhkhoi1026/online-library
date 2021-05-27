@@ -11,7 +11,17 @@ class library_client:
     def __init__(self, host = HOST, port = PORT):
         self.host = host
         self.port = port
+        self.__connected = True
         self.server = None
+    
+    def __update_connection_state(self):
+        try:
+            self.server.settimeout(3) # maximum time to wait for server
+            msg = self.server.recv().decode('utf-8')
+            self.server.settimeout(None)
+            self.__connected = eval(msg)
+        except:
+            self.__connected = False
         
 #-------------------PUBLIC AREA-------------------
     def connect(self,host = HOST):
@@ -22,7 +32,8 @@ class library_client:
                 server_addr = (self.host, self.port)
                 self.server = socket.create_connection(server_addr, timeout = 5)
                 self.server = socket_adapter(self.server) # wrap socket in personal interface
-                return ("Connected successfully at"+ host_to_str(*server_addr))
+                self.__connected = True
+                return ("Connected successfully at "+ host_to_str(*server_addr))
             except socket.error:
                 print("Failed to connect to", host_to_str(*server_addr) + ". Retrying...")
                 self.port += 1
@@ -38,9 +49,20 @@ class library_client:
         except:
             return False
     
+    def is_alive(self):
+        return self.__connected
+    
     def log_in(self, username, password):
+        # send request
         request = ' '.join(["LOGIN", username, password])
         self.server.send(request.encode("utf-8"))
+
+        # check if server still connect
+        self.__update_connection_state()
+        if not self.__connected:
+            return False
+
+        #receive request
         msg = self.server.recv().decode("utf-8")
         return eval(msg)
     
@@ -48,6 +70,12 @@ class library_client:
     def sign_up(self, username, password):
         request = ' '.join(["SIGNUP", username, password])
         self.server.send(request.encode("utf-8"))
+
+        # check if server still connect
+        self.__update_connection_state()
+        if not self.__connected:
+            return False
+
         msg = self.server.recv().decode("utf-8")
         return eval(msg)
     
@@ -58,6 +86,12 @@ class library_client:
             return []
         request = ' '.join([cmd, detail])
         self.server.send(request.encode('utf-8'))
+
+        # check if server still connect
+        self.__update_connection_state()
+        if not self.__connected:
+            return []
+
         json_books = self.server.recv().decode('utf-8')
         books = json.loads(json_books)
         return books
@@ -66,6 +100,12 @@ class library_client:
     def get_book_content(self, id):
         request = ' '.join(["GETBOOK", id])
         self.server.send(request.encode('utf-8'))
+
+        # check if server still connect
+        self.__update_connection_state()
+        if not self.__connected:
+            return ('None', b'')
+
         ext = self.server.recv().decode('utf-8')
         content = self.server.recv()
         return (ext, content)

@@ -67,36 +67,35 @@ class Login:
     return
 
   def Login(self):
-    if not self.client.server:
-        messagebox.showinfo("Notification",'Error: not connected to server yet!') 
-        return
     try:
-      if self.client.log_in(self.txt_user.get(),self.txt_pass.get()):
+      ok = self.client.log_in(self.txt_user.get(),self.txt_pass.get())
+      if not self.client.is_alive():
+        raise Exception
+
+      if ok:
           root.destroy()
           #Open new window
-          try:
-            newroot = Tk()
-            application = Window_user(newroot,self.client)
-            newroot.mainloop()
-          except ConnectionAbortedError:
-            messagebox.showinfo("Notification","Error: server disconnected!")
+          newroot = Tk()
+          application = Window_user(newroot,self.client)
+          newroot.mainloop()
           return
       messagebox.showinfo("Notification","Incorrect username or password!")
-    except ConnectionAbortedError:
+    except:
       messagebox.showinfo("Notification","Error: server disconnected!")
     return
 
   def SignUp(self):
-    if not self.client.server:
-        messagebox.showinfo("Notification",'Error: not connected to server yet!') 
-        return
     try:
-      if self.client.sign_up(self.txt_user.get(),self.txt_pass.get()):
+      ok = self.client.sign_up(self.txt_user.get(),self.txt_pass.get())
+      if not self.client.is_alive():
+        raise Exception
+      
+      if ok:
           messagebox.showinfo("Notification","Sign Up successfully")
           self.goback()
       else:
           messagebox.showinfo("Notification",'Account already exists..') 
-    except ConnectionAbortedError:
+    except:
       messagebox.showinfo("Notification",'Error: server disconnected!') 
 
 if __name__ == '__main__':
