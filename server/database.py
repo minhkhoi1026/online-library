@@ -74,27 +74,27 @@ class library_database():
             return False
 
     def view(self):
-        query = 'SELECT ID, NAME, AUTHOR, PUBLISH_YEAR FROM BOOK'
+        query = 'SELECT ID, NAME, TYPE, AUTHOR, PUBLISH_YEAR FROM BOOK'
         db_table = self.__query(query)
         return db_table
 
     def get_books_by_id(self,ID):
-        query = 'SELECT ID, NAME, AUTHOR, PUBLISH_YEAR FROM BOOK WHERE ID = ?'
+        query = 'SELECT ID, NAME, TYPE, AUTHOR, PUBLISH_YEAR FROM BOOK WHERE ID = ?'
         db_table = self.__query(query,(ID,))
         return db_table
 
     def get_books_by_name(self,name):
-        query = 'SELECT ID, NAME, AUTHOR, PUBLISH_YEAR FROM BOOK WHERE NAME = ?'
+        query = 'SELECT ID, NAME, TYPE, AUTHOR, PUBLISH_YEAR FROM BOOK WHERE NAME = ?'
         db_table = self.__query(query,(name,))
         return db_table
 
     def get_books_by_type(self,Type):
-        query = 'SELECT ID, NAME, AUTHOR, PUBLISH_YEAR FROM BOOK WHERE TYPE = ?'
+        query = 'SELECT ID, NAME, TYPE, AUTHOR, PUBLISH_YEAR FROM BOOK WHERE TYPE = ?'
         db_table = self.__query(query,(Type,))
         return db_table
 
     def get_books_by_author(self,author):
-        query = 'SELECT ID, NAME, AUTHOR, PUBLISH_YEAR FROM BOOK WHERE AUTHOR = ?'
+        query = 'SELECT ID, NAME, TYPE, AUTHOR, PUBLISH_YEAR FROM BOOK WHERE AUTHOR = ?'
         db_table = self.__query(query,(author,))
         return db_table
 

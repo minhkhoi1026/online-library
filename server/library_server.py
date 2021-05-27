@@ -8,7 +8,7 @@ import time
 
 HOST = '0.0.0.0'  # open host in all network interfaces
 PORT = 26100  # default port
-DB_NAME = 'library'
+DB_NAME = 'lb.db'
 MAX_CONN = 2
 
 
@@ -137,6 +137,7 @@ class library_server:
     
     # close all current connection
     def close_all_connect(self):
+        print('132')
         for t in self.client_threads:
             if not t.is_stopped():
                 t.stop()

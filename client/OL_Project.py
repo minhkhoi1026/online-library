@@ -7,8 +7,8 @@ import time
 import tkinter.messagebox
 from tkinter import filedialog
 import sqlite3
-from db import database
 
+from library_client import *
 
 ''' CREATING CLASS'''
 class Read:
@@ -90,12 +90,11 @@ class Read:
 
     def night_off(self):
         main_color = "SystemButtonFace"
-        second_color = "SystemButtonFace"
         text_color = "black"
 
         self.root.config(bg=main_color)
         self.status_bar.config(bg=main_color, fg=text_color)
-        self.my_text.config(bg="white",fg='black')
+        self.my_text.config(bg=main_color,fg=text_color)
         self.toolbar_frame.config(bg=main_color)
         # toolbar buttons
 
@@ -114,15 +113,16 @@ class Read:
 class Window_user:
     db_name = 'lb.db'
 
-    def __init__(self, root,DB):
+    def __init__(self, root,client):
         self.root = root
-        self.DB=DB
+        #self.DB=DB
+        self.client=client
         self.root.geometry('530x460+600+200')
         self.root.title('Online library')
 
         '''Logo and Title'''
 
-        self.photo = PhotoImage(file='icon.png')
+        self.photo = PhotoImage(file='images/icon.png')
         self.label = Label(image=self.photo)
         self.label.grid(row=0, column=0)
 
@@ -131,9 +131,9 @@ class Window_user:
 
         self.option = [
             "ID",
-            "Name",
-            "Type",
-            "Author"
+            "NAME",
+            "TYPE",
+            "AUTHOR"
         ]   
         ''' New Books '''
         self.frame = LabelFrame(self.root, text='Book search')
@@ -151,7 +151,7 @@ class Window_user:
         self.S_text.grid(row=2, column=2)
 
         '''Add Button'''
-        self.search=Button(self.frame, text='Search book', command=self.view_book_ID)
+        self.search=Button(self.frame, text='Search book', command=self.view_book)
         self.search.grid(row=3, column=2)
 
         '''Message Display'''
@@ -173,7 +173,6 @@ class Window_user:
         self.tree.column('#4', width=50,stretch=False)
 
         '''Time and Date'''
-
         def tick():
             d = datetime.datetime.now()
             today = '{:%B %d,%Y}'.format(d)
@@ -185,78 +184,40 @@ class Window_user:
         self.lblInfo = Label(font=('arial', 10, 'bold'), fg='Dark green')
         self.lblInfo.grid(row=10, column=0, columnspan=2)
         tick()
+
         self.B_read = Button(self.root, text="Read the book",command=self.read_box)
         self.B_read.place(x=405,y=420)
-        self.B_download = Button(self.root, text="Download the book",command=self.download)
+        self.B_download = Button(self.root, text="Download the book",command=self.download_box)
         self.B_download.place(x=10,y=420)
 
         ''' Menu Bar '''
         Chooser = Menu()
         itemone = Menu()
 
-
-        itemone.add_command(label='Read Book', command=self.edit)
+        itemone.add_command(label='Read Book', command=self.Q_read)
         itemone.add_separator()
         itemone.add_command(label='Exit', command=self.ex)
 
         Chooser.add_cascade(label='File', menu=itemone)
-        Chooser.add_command(label='Read Book', command=self.edit)
+        Chooser.add_command(label='Read Book', command=self.Q_read)
         Chooser.add_command(label='Exit', command=self.ex)
 
-        root.config(menu=Chooser)
-        self.view_book()
+        self.root.config(menu=Chooser)
 
     ''' View Database Table'''
     def fix(self,a):
         self.N_text.config(text=self.chosen.get()+':')
-        if a==self.option[0]:
-            self.search.config(command=self.view_book_ID)
-        elif a==self.option[1]:
-            self.search.config(command=self.view_book_name)
-        elif a==self.option[2]:
-            self.search.config(command=self.view_book_type)
-        elif a==self.option[3]:
-            self.search.config(command=self.view_book_author)
 
     def view_book(self):
         books = self.tree.get_children()
         for element in books:
             self.tree.delete(element)
-        db_table = self.DB.Bview()
-        for data in db_table:
-            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
-    def view_book_ID(self):
-        books = self.tree.get_children()
-        for element in books:
-            self.tree.delete(element)
-        db_table=self.DB.BSearch_ID(self.S_text.get())
-        for data in db_table:
-            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
-    def view_book_name(self):
-        books = self.tree.get_children()
-        for element in books:
-            self.tree.delete(element)
-        db_table=self.DB.BSearch_name(self.S_text.get())
-        for data in db_table:
-            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
-    def view_book_type(self):
-        books = self.tree.get_children()
-        for element in books:
-            self.tree.delete(element)
-        db_table=self.DB.BSearch_type(self.S_text.get())
-        for data in db_table:
-            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
-    def view_book_author(self):
-        books = self.tree.get_children()
-        for element in books:
-            self.tree.delete(element)
-        ### 
 
-        db_table=self.DB.BSearch_author(self.S_text.get())
-
-        ###
+        db_table=self.client.get_list_book("F_"+self.chosen.get(),self.S_text.get())
         for data in db_table:
-            self.tree.insert('', 1000, text=data[0], values=data[1:-1])
+            self.tree.insert('', 1000, text=data[0], values=data[1:])
+        return
+
 
 
 
@@ -271,23 +232,46 @@ class Window_user:
 
         ID = self.tree.item(self.tree.selection())['text']
 
-        string =self.DB.ReadBook(ID)
-
+        string = self.client.get_book_content(ID)
         if string != None:
-            self.read_window=Read(self.root,string.decode("utf-8"),self.tree.item(self.tree.selection())['values'][0])
+            self.read_window=Read(self.root,string[1],self.tree.item(self.tree.selection())['values'][0])
 
+    def download_box(self):
+        self.message['text'] = ''
+        try:
+            self.tree.item(self.tree.selection())['values'][0]
 
-    def edit(self):
+        except IndexError as e:
+            self.message['text'] = 'Please select a Book to download!'
+            return
+
+        ID = self.tree.item(self.tree.selection())['text']
+
+        data = self.client.get_book_content(ID)
+        if data != None:
+            self.downLoad(data[1],data[0])
+
+    def Q_read(self):
         ed = tkinter.messagebox.askquestion('Read information', 'Want to read this book?')
         if ed == 'yes':
             self.read_box()
-    def download(self):
-        text_file = filedialog.asksaveasfilename(defaultextension=".*", title="Save File", filetypes=(("Text Files", "*.txt"), ("All Files", "*.*")))
+
+    def downLoad(self,data,type='txt'):
+        if type=='pdf':
+            save_as=(("PDF Files", "*.pdf"), ("All Files", "*.*"))
+        elif type=='doc':
+            save_as=(("DOC Files", "*.doc"), ("All Files", "*.*"))
+        elif type =='docx':
+            save_as=(("DOCX Files", "*.docx"), ("All Files", "*.*"))
+        else:
+            save_as=(("Text Files", "*.txt"), ("All Files", "*.*"))
+
+        text_file = filedialog.asksaveasfilename(defaultextension=".*", title="Save File", filetypes=save_as)
         if text_file:
 
             # Save the file
             text_file = open(text_file, 'wb')
-            text_file.write(b'hello')
+            text_file.write(data)
             # Close the file
             text_file.close()
 

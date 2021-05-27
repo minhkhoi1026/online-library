@@ -88,6 +88,17 @@ class App:
         self.root.bind('<Control-q>', self.quit)
         signal.signal(signal.SIGINT, self.quit)
 
+        Chooser = tk.Menu()
+        itemone = tk.Menu()
+        itemone.add_command(label='Close all connect', command=self.server_obj.close_all_connect)
+        itemone.add_separator()
+        itemone.add_command(label='Exit', command=self.quit)
+
+        Chooser.add_cascade(label='File', menu=itemone)
+        Chooser.add_command(label='Close all connect', command=self.server_obj.close_all_connect)
+        Chooser.add_command(label='Exit', command=self.quit)
+        self.root.config(menu=Chooser)
+
     def quit(self, *args):
         self.server.stop()
         self.root.destroy()

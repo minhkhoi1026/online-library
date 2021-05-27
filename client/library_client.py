@@ -13,15 +13,15 @@ class library_client:
         self.port = port
         
 #-------------------PUBLIC AREA-------------------
-    def connect(self):
+    def connect(self,host = HOST):
+        self.host = host
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
                 server_addr = (self.host, self.port)
                 self.server = socket.create_connection(server_addr, timeout = 5)
                 self.server = socket_adapter(self.server) # wrap socket in personal interface
-                print("Connected successfullt at", host_to_str(*server_addr))
-                break
+                return ("Connected successfullt at"+ host_to_str(*server_addr))
             except socket.error:
                 print("Failed to connect to", host_to_str(*server_addr) + ". Retrying...")
                 self.port += 1

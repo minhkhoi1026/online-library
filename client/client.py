@@ -3,13 +3,13 @@ from PIL import ImageTk
 from tkinter import messagebox
 from OL_Project import *
 from tkinter import filedialog
-from db import database
 
+from library_client import *
 
 class Login:
   def __init__(self,root):
     self.root=root
-    self.DB=database('lb.db')
+    self.client = library_client()
     self.root.title('Login System')
     self.root.geometry('1200x580')
     self.root.resizable(False,False)
@@ -39,8 +39,18 @@ class Login:
     self.confirm=Button(Frame_login,text='Sign in',bg='#344fa1',fg='white',bd=0,command=self.Login,font=('times new roman',12))
     self.confirm.place(x=330,y=220)
 
+    self.val_id = StringVar()
+    self.val_id.set('127.0.0.1')
+    self.ip = Entry(self.root, width=20, borderwidth=5,textvariable=self.val_id)
+    self.ip.place(x=950,y=520)
+    self.buttonConnect = Button(self.root,text="Connect", command=self.Button_Connect)
+    self.buttonConnect.place(x=1100,y=520)
+  def Button_Connect(self):
 
-
+    ### START CODE HERE ###
+    messagebox.showinfo("Notification",self.client.connect(self.ip.get()))
+    ### END CODE HERE ###
+    return
   def showPW(self):
     if self.txt_pass['show']=='*':
         self.txt_pass.config(show='')
@@ -55,24 +65,19 @@ class Login:
     self.confirm.config(text="Sign in",command=self.Login)
     return
   def Login(self):
-    if self.DB.Login(self.txt_user.get(),self.txt_pass.get()):
+
+    if self.client.log_in(self.txt_user.get(),self.txt_pass.get()):
         root.destroy()
         #Open new window
         newroot = Tk()
-        application = Window_user(newroot,self.DB)
+        application = Window_user(newroot,self.client)
         newroot.mainloop()
         return
     messagebox.showinfo("Notification","Incorrect Username or password")
     return
-  def run_query(self, query, parameters=()):
-        with sqlite3.connect('lb.db') as conn:
-            cursor = conn.cursor()
-            query_result = cursor.execute(query, parameters)
-            conn.commit()
-        return query_result.fetchall()  
   def SignUp(self):
 
-    if self.DB.Register(self.txt_user.get(),self.txt_pass.get()):
+    if self.client.sign_up(self.txt_user.get(),self.txt_pass.get()):
         messagebox.showinfo("Notification","Sign Up in successfully")
         self.goback()
     else:
