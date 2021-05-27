@@ -47,7 +47,7 @@ class Read:
         self.my_menu.add_cascade(label="Book", menu=self.file_menu)
         self.file_menu.add_command(label="Save As...", command=self.save_as_file)
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Exit", command=root.quit)
+        self.file_menu.add_command(label="Exit", command=self.root.destroy)
 
 
 
@@ -232,6 +232,9 @@ class Window_user:
 
         string = self.client.get_book_content(ID)
         if string != None:
+            if string[0] != 'txt':
+                tkinter.messagebox.showinfo("Notification","Format not supported!")
+                return
             self.read_window=Read(self.root,string[1],self.tree.item(self.tree.selection())['values'][0])
 
     def download_box(self):
