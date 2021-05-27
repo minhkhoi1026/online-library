@@ -103,11 +103,9 @@ class Read:
         self.options_menu.config(bg=main_color, fg=text_color)
     def Print(self,S):
         string=S
-        ### START CODE HERE ###
         self.my_text.configure(state="normal")
         self.my_text.insert(END,string)
         self.my_text.configure(state="disabled")
-        ### END CODE HERE ###
         return
 
 class Window_user:

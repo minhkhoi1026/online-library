@@ -9,9 +9,7 @@ import time
 HOST = '0.0.0.0'  # open host in all network interfaces
 PORT = 26100  # default port
 DB_NAME = 'lb.db'
-MAX_CONN = 2
-
-
+MAX_CONN = 5
 
 class library_server:
 #-------------------PRIVATE AREA-------------------
@@ -137,12 +135,11 @@ class library_server:
     
     # close all current connection
     def close_all_connect(self):
-        print('132')
         for t in self.client_threads:
             if not t.is_stopped():
                 t.stop()
         self.client_threads = []
-        pass
+        self.logger.log(logging.INFO, "Disconnected all client! Each current client will have one more request before closed!")
 
     # update client list, remove thread that stopped
     def update_client_list(self):

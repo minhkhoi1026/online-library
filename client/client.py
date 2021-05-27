@@ -3,7 +3,7 @@ from PIL import ImageTk
 from tkinter import messagebox
 from OL_Project import *
 from tkinter import filedialog
-
+import socket
 from library_client import *
 
 class Login:
@@ -45,44 +45,61 @@ class Login:
     self.ip.place(x=950,y=520)
     self.buttonConnect = Button(self.root,text="Connect", command=self.Button_Connect)
     self.buttonConnect.place(x=1100,y=520)
+    
   def Button_Connect(self):
-
-    ### START CODE HERE ###
     messagebox.showinfo("Notification",self.client.connect(self.ip.get()))
-    ### END CODE HERE ###
     return
+    
   def showPW(self):
     if self.txt_pass['show']=='*':
         self.txt_pass.config(show='')
         return
     self.txt_pass['show']='*'
+
   def Register(self):
     self.reg.config(text="Go back",command=self.goback)
     self.confirm.config(text="Sign up",command=self.SignUp)
     return
+
   def goback(self):
     self.reg.config(text="Register an account ?",command=self.Register)
     self.confirm.config(text="Sign in",command=self.Login)
     return
+
   def Login(self):
-
-    if self.client.log_in(self.txt_user.get(),self.txt_pass.get()):
-        root.destroy()
-        #Open new window
-        newroot = Tk()
-        application = Window_user(newroot,self.client)
-        newroot.mainloop()
+    if not self.client.server:
+        messagebox.showinfo("Notification",'Error: not connected to server yet!') 
         return
-    messagebox.showinfo("Notification","Incorrect Username or password")
+    try:
+      if self.client.log_in(self.txt_user.get(),self.txt_pass.get()):
+          root.destroy()
+          #Open new window
+          try:
+            newroot = Tk()
+            application = Window_user(newroot,self.client)
+            newroot.mainloop()
+          except ConnectionAbortedError:
+            messagebox.showinfo("Notification","Error: server disconnected!")
+          return
+      messagebox.showinfo("Notification","Incorrect username or password!")
+    except ConnectionAbortedError:
+      messagebox.showinfo("Notification","Error: server disconnected!")
     return
+
   def SignUp(self):
+    if not self.client.server:
+        messagebox.showinfo("Notification",'Error: not connected to server yet!') 
+        return
+    try:
+      if self.client.sign_up(self.txt_user.get(),self.txt_pass.get()):
+          messagebox.showinfo("Notification","Sign Up successfully")
+          self.goback()
+      else:
+          messagebox.showinfo("Notification",'Account already exists..') 
+    except ConnectionAbortedError:
+      messagebox.showinfo("Notification",'Error: server disconnected!') 
 
-    if self.client.sign_up(self.txt_user.get(),self.txt_pass.get()):
-        messagebox.showinfo("Notification","Sign Up in successfully")
-        self.goback()
-    else:
-        messagebox.showinfo("Notification",'Account already exists..') 
-
-root=Tk()
-obj=Login(root)
-root.mainloop()
+if __name__ == '__main__':
+  root=Tk()
+  obj=Login(root)
+  root.mainloop()

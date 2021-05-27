@@ -11,6 +11,7 @@ class library_client:
     def __init__(self, host = HOST, port = PORT):
         self.host = host
         self.port = port
+        self.server = None
         
 #-------------------PUBLIC AREA-------------------
     def connect(self,host = HOST):
@@ -21,12 +22,13 @@ class library_client:
                 server_addr = (self.host, self.port)
                 self.server = socket.create_connection(server_addr, timeout = 5)
                 self.server = socket_adapter(self.server) # wrap socket in personal interface
-                return ("Connected successfullt at"+ host_to_str(*server_addr))
+                return ("Connected successfully at"+ host_to_str(*server_addr))
             except socket.error:
                 print("Failed to connect to", host_to_str(*server_addr) + ". Retrying...")
                 self.port += 1
+                self.server = None
                 if (self.port >= 26200):
-                    raise ConnectionError("Cannot connect to server!")
+                    return "Cannot connect to server!"
     
     def close_connect(self):
         try:
