@@ -4,14 +4,14 @@ from tkinter import *
 from tkinter import ttk
 import datetime
 import time
-import tkinter.messagebox
+from tkinter import messagebox
 from tkinter import filedialog
 import sqlite3
 
 from library_client import *
 
 ''' CREATING CLASS'''
-class Read:
+class text_view:
     def __init__(self,root,string,name):
         self.root = Toplevel(root)
         self.root.geometry("1200x710")
@@ -211,10 +211,17 @@ class Window_user:
         for element in books:
             self.tree.delete(element)
 
-        db_table=self.client.get_list_book("F_"+self.chosen.get(),self.S_text.get())
-        for data in db_table:
-            self.tree.insert('', 1000, text=data[0], values=data[1:])
-        return
+        
+        try:
+            db_table=self.client.get_list_book("F_"+self.chosen.get(),self.S_text.get())
+            if not self.client.is_alive():
+                raise Exception      
+
+            for data in db_table:
+                self.tree.insert('', 1000, text=data[0], values=data[1:])
+        except:
+            messagebox.showinfo("Notification",'Error: server disconnected!')
+            self.root.destroy()
 
 
 
@@ -230,12 +237,19 @@ class Window_user:
 
         ID = self.tree.item(self.tree.selection())['text']
 
-        string = self.client.get_book_content(ID)
-        if string != None:
-            if string[0] != 'txt':
-                tkinter.messagebox.showinfo("Notification","Format not supported!")
-                return
-            self.read_window=Read(self.root,string[1],self.tree.item(self.tree.selection())['values'][0])
+        
+        try:
+            string = self.client.get_book_content(ID)
+            if not self.client.is_alive():
+                raise Exception              
+            if string != None:
+                if string[0] != 'txt':
+                    messagebox.showinfo("Notification","Format not supported!")
+                    return
+                self.read_window=text_view(self.root,string[1],self.tree.item(self.tree.selection())['values'][0])
+        except:
+            messagebox.showinfo("Notification",'Error: server disconnected!')
+            self.root.destroy()
 
     def download_box(self):
         self.message['text'] = ''
@@ -248,13 +262,19 @@ class Window_user:
 
         ID = self.tree.item(self.tree.selection())['text']
 
-        data = self.client.get_book_content(ID)
-        if data != None:
-            self.downLoad(data[1],data[0])
+        try:
+            data = self.client.get_book_content(ID)
+            if not self.client.is_alive():
+                raise Exception      
+            if data != None:
+                self.downLoad(data[1],data[0])
+        except:
+            messagebox.showinfo("Notification",'Error: server disconnected!')
+            self.root.destroy()
 
     def Q_read(self):
-        ed = tkinter.messagebox.askquestion('Read information', 'Want to read this book?')
-        if ed == 'yes':
+        re = messagebox.askquestion('Read information', 'Want to read this book?')
+        if re == 'yes':
             self.read_box()
 
     def downLoad(self,data,type='txt'):
@@ -278,7 +298,7 @@ class Window_user:
 
     '''EXIT'''
     def ex(self):
-        exit = tkinter.messagebox.askquestion('Exit Application','Are you sure you want to close this application?')
+        exit = messagebox.askquestion('Exit Application','Are you sure you want to close this application?')
         if exit == 'yes':
             self.root.destroy()
 
