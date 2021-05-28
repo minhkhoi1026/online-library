@@ -95,7 +95,7 @@ class Login:
           self.goback()
       else:
           messagebox.showinfo("Notification",'Account already exists..') 
-    except:
+    except Exception:
       messagebox.showinfo("Notification",'Error: server disconnected!') 
 
 if __name__ == '__main__':

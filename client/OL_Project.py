@@ -198,7 +198,7 @@ class Window_user:
 
         Chooser.add_cascade(label='File', menu=itemone)
         Chooser.add_command(label='Read Book', command=self.Q_read)
-        Chooser.add_command(label='Exit', command=self.ex)
+        Chooser.add_command(label='Close connect and exit', command=self.ex)
 
         self.root.config(menu=Chooser)
 
@@ -211,7 +211,6 @@ class Window_user:
         for element in books:
             self.tree.delete(element)
 
-        
         try:
             db_table=self.client.get_list_book("F_"+self.chosen.get(),self.S_text.get())
             if not self.client.is_alive():
@@ -300,6 +299,8 @@ class Window_user:
     def ex(self):
         exit = messagebox.askquestion('Exit Application','Are you sure you want to close this application?')
         if exit == 'yes':
+            self.client.close_connect()
+            print("ok")
             self.root.destroy()
 
 

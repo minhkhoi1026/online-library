@@ -22,10 +22,14 @@ class library_client:
             self.__connected = eval(msg)
         except:
             self.__connected = False
+
+    def __del__(self):
+        self.close_connect()
         
 #-------------------PUBLIC AREA-------------------
-    def connect(self,host = HOST):
+    def connect(self, host = HOST):
         self.host = host
+        self.port = PORT
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
@@ -38,13 +42,14 @@ class library_client:
                 print("Failed to connect to", host_to_str(*server_addr) + ". Retrying...")
                 self.port += 1
                 self.server = None
-                if (self.port >= 26200):
+                if (self.port >= 26106):
                     return "Cannot connect to server!"
     
     def close_connect(self):
         try:
             self.server.send("QUIT".encode("utf-8"))
             self.server.close()
+            self.__connected = False
             return True
         except:
             return False

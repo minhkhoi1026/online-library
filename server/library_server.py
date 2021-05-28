@@ -111,6 +111,7 @@ class library_server:
         # Open to listen for connection
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_addr = None
+        self.port = PORT
         
         while True:
             try:
@@ -120,7 +121,7 @@ class library_server:
             except socket.error:
                 self.logger.log(logging.DEBUG, "Failed to deploy server at " + host_to_str(*server_addr) + ". Retrying...")
                 self.port += 1
-                if (self.port >= 26200):
+                if (self.port >= 26106):
                     raise RuntimeError("Cannot deploy server!")
 
         self.logger.log(logging.INFO, "Server is available at " + host_to_str(*server_addr))
