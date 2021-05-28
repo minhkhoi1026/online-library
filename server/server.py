@@ -7,9 +7,8 @@ import threading
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter import ttk, N, S, E, W
-from library_server import library_server
+from library_server import *
 from utils import stoppabe_thread
-
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +70,7 @@ class ConsoleUi:
 
 
 class App:
-    def __init__(self, root):
+    def __init__(self, root, host = HOST, port = PORT, db_name = DB_NAME, max_conn = MAX_CONN):
         self.root = root
         root.title('Logging Handler')
         root.columnconfigure(0, weight=1)
@@ -81,7 +80,7 @@ class App:
         console_frame.columnconfigure(0, weight=1)
         console_frame.rowconfigure(0, weight=1)
         self.console = ConsoleUi(console_frame)
-        self.server_obj = library_server(logger = logger)
+        self.server_obj = library_server(logger = logger, host = host, port = port, db_name = db_name, max_conn = max_conn)
         self.server = stoppabe_thread(target = self.server_obj.run, daemon = True)
         self.server.start()
         self.root.protocol('WM_DELETE_WINDOW', self.quit)
