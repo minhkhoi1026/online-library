@@ -72,7 +72,6 @@ class ConsoleUi:
 
 class App:
     def __init__(self, root, host = HOST, port = PORT, db_name = DB_NAME, max_conn = MAX_CONN):
-        print(max_conn)
         self.root = root
         root.title('Logging Handler')
         root.columnconfigure(0, weight=1)
@@ -107,22 +106,19 @@ class App:
 def openSV(Entry_num,root):
     num=Entry_num.get()
     try:
-        num=int(num)
+        num = int(num)
     except:
         messagebox.showinfo("Notification",'Invalid input number')
         return
-    if num >0:
+    if num > 0:
         root2 = tk.Tk()
-        app = App(root2,max_conn=num)
+        app = App(root2, max_conn = num)
         root.destroy()
         app.root.mainloop()
         return
     else:
         messagebox.showinfo("Notification",'Negative input number')
         return
-
-
-
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

@@ -124,6 +124,7 @@ class library_server:
                 if (self.port >= 26106):
                     raise RuntimeError("Cannot deploy server!")
 
+        self.logger.log(logging.INFO, "Maximum concurrent client: " + str(self.max_conn))
         self.logger.log(logging.INFO, "Server is available at " + host_to_str(*server_addr))
         server.listen(0) # not allow queuing unaccpeted connection
         
