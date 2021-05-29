@@ -4,6 +4,7 @@ import logging
 import signal
 import time
 import threading
+from tkinter import messagebox
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from tkinter import ttk, N, S, E, W
@@ -71,6 +72,7 @@ class ConsoleUi:
 
 class App:
     def __init__(self, root, host = HOST, port = PORT, db_name = DB_NAME, max_conn = MAX_CONN):
+        print(max_conn)
         self.root = root
         root.title('Logging Handler')
         root.columnconfigure(0, weight=1)
@@ -102,13 +104,33 @@ class App:
         self.server.stop()
         self.root.destroy()
 
+def openSV(Entry_num,root):
+    num=Entry_num.get()
+    try:
+        num=int(num)
+    except:
+        messagebox.showinfo("Notification",'Invalid input number')
+        return
+    if num >0:
+        root2 = tk.Tk()
+        app = App(root2,max_conn=num)
+        root.destroy()
+        app.root.mainloop()
+        return
+    else:
+        messagebox.showinfo("Notification",'Negative input number')
+        return
 
-def main():
-    logging.basicConfig(level=logging.DEBUG)
-    root = tk.Tk()
-    app = App(root)
-    app.root.mainloop()
+
 
 
 if __name__ == '__main__':
-    main()
+    logging.basicConfig(level=logging.DEBUG)
+    root = tk.Tk()
+    tk.Label(root, text='Max client:').grid(row=2, column=1, sticky=W)
+    number = tk.Entry(root)
+    number.grid(row=2, column=2)
+    '''Add Button'''
+    ok=tk.Button(root, text='Ok',padx=30, command=lambda x=number, y=root: openSV(x,y))
+    ok.grid(row=3, column=2)
+    root.mainloop()
