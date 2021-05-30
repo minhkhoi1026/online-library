@@ -129,7 +129,7 @@ class library_server:
         server.listen(0) # not allow queuing unaccpeted connection
         
         # accept connection then respond request from client
-        while not threading.current_thread().is_stopped():
+        while not threading.current_thread().is_stopped(): # while True
             try:
                 client, addr = server.accept()
                 if not (self.available()): # limited number of concurrent client
