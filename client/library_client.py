@@ -115,11 +115,12 @@ class library_client:
         content = self.server.recv()
         return (ext, content)
 
-'''client = library_client()
-client.connect()
-with open("test3.pdf", "wb") as f:
-    ext, content = client.get_book_content('2')
-    print(ext)
-    if (ext == 'None'): exit()
-    f.write(content)
-print(client.close_connect())'''
+if __name__ == '__main__':
+    client = library_client()
+    client.connect()
+    with open("test3.pdf", "wb") as f:
+        ext, content = client.get_book_content('2')
+        print(ext)
+        if (ext == 'None'): exit()
+        f.write(content)
+    print(client.close_connect())
