@@ -72,6 +72,7 @@ class ConsoleUi:
 
 class App:
     def __init__(self, root, host = HOST, port = PORT, db_name = DB_NAME, max_conn = MAX_CONN):
+        print(max_conn)
         self.root = root
         root.title('Logging Handler')
         root.columnconfigure(0, weight=1)
@@ -88,45 +89,49 @@ class App:
         self.root.bind('<Control-q>', self.quit)
         signal.signal(signal.SIGINT, self.quit)
 
-        Chooser = tk.Menu()
-        itemone = tk.Menu()
-        itemone.add_command(label='Close all connect', command=self.server_obj.close_all_connect)
-        itemone.add_separator()
-        itemone.add_command(label='Exit', command=self.quit)
+        self.Chooser = tk.Menu()
+        self.itemone = tk.Menu()
+        self.itemone.add_command(label='Close all connect', command=self.server_obj.close_all_connect)
+        self.itemone.add_separator()
+        self.itemone.add_command(label='Exit', command=self.quit)
 
-        Chooser.add_cascade(label='File', menu=itemone)
-        Chooser.add_command(label='Close all connect', command=self.server_obj.close_all_connect)
-        Chooser.add_command(label='Exit', command=self.quit)
-        self.root.config(menu=Chooser)
+        self.Chooser.add_cascade(label='File', menu=self.itemone)
+        self.Chooser.add_command(label='Close all connect', command=self.server_obj.close_all_connect)
+        self.Chooser.add_command(label='Exit', command=self.quit)
+        self.root.config(menu=self.Chooser)
 
     def quit(self, *args):
         self.server.stop()
         self.root.destroy()
 
-def openSV(Entry_num,root):
+def openSV(Entry_num,maxCN):
     num=Entry_num.get()
     try:
-        num = int(num)
+        num=int(num)
     except:
         messagebox.showinfo("Notification",'Invalid input number')
         return
-    if num > 0:
-        root2 = tk.Tk()
-        app = App(root2, max_conn = num)
-        root.destroy()
-        app.root.mainloop()
+    if num >0:
+        maxCN.destroy()
+        openApp(num)
         return
     else:
         messagebox.showinfo("Notification",'Negative input number')
         return
 
+def openApp(num):
+	root=tk.Tk()
+	logging.basicConfig(level=logging.DEBUG)
+	app = App(root,max_conn=num)
+	root.mainloop()
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    root = tk.Tk()
-    tk.Label(root, text='Max client:').grid(row=2, column=1, sticky=W)
-    number = tk.Entry(root)
+    maxCN = tk.Tk()
+    tk.Label(maxCN, text='Max client:').grid(row=2, column=1, sticky=W)
+    number = tk.Entry(maxCN)
     number.grid(row=2, column=2)
-    '''Add Button'''
-    ok=tk.Button(root, text='Ok',padx=30, command=lambda x=number, y=root: openSV(x,y))
+   
+    '''OK Button'''
+    ok=tk.Button(maxCN, text='Ok',padx=30, command=lambda x=number, y=maxCN: openSV(x,y))
     ok.grid(row=3, column=2)
-    root.mainloop()
+    maxCN.mainloop()

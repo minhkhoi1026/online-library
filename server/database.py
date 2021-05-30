@@ -104,13 +104,14 @@ class library_database():
             ext = path.split('.')[-1]
         return (ext, data)
 
-db = library_database('lb.db')
-'''db.create_tables()
-db.add_book('3', 'Mans Search for meaning', 'Triết học', 'Sena', '2001', 'BOOK\\Mans Search for meaning.pdf')
-db.add_book('4', 'Tu Tuong', 'Triết học', 'Abe', '1975', 'BOOK\\xn.docx')
-print(db.sign_up('bachtam22082001', 'bachtam'))
-print(db.sign_up('bachtam22082001', '123456'))
-print(db.log_in('bachtam22082001', 'bachtam'))'''
-print(db.get_books_by_type('A A'))
-#with open("test1.pdf", "wb") as f:
-   # f.write(db.get_book_content('1'))
+if __name__ == '__main__':
+    db = library_database('lb.db')
+    db.create_tables()
+    db.add_book('3', 'Mans Search for meaning', 'Triết học', 'Sena', '2001', 'BOOK\\Mans Search for meaning.pdf')
+    db.add_book('4', 'Tu Tuong', 'Triết học', 'Abe', '1975', 'BOOK\\xn.docx')
+    print(db.sign_up('bachtam22082001', 'bachtam'))
+    print(db.sign_up('bachtam22082001', '123456'))
+    print(db.log_in('bachtam22082001', 'bachtam'))
+    print(db.get_books_by_type('A A'))
+    with open("test1.pdf", "wb") as f:
+        f.write(db.get_book_content('1'))
